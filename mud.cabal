@@ -1,0 +1,34 @@
+name:                mud
+version:             0.1.0.0
+synopsis:            A MUD and Shakes&Fidget inspired game server engine / thing.
+description:         Please refer to the README.
+homepage:            https://github.com/soverysour/mud#readme
+license:             BSD3
+license-file:        LICENSE
+author:              soverysour
+maintainer:          sebi.f@tuta.io
+copyright:           agplv3
+category:            web
+build-type:          Simple
+extra-source-files:  README.md
+cabal-version:       >=1.10
+
+executable mud
+  hs-source-dirs:      app
+  main-is:             Main.hs
+  other-modules:       Types
+                     , Responding
+                     , App
+                     , AppTypes
+                     , Sql
+                     , Actions
+  default-language:    Haskell2010
+  build-depends:       base >= 4.7 && < 5
+                     , Spock >= 0.11
+                     , mtl
+                     , monad-logger
+                     , persistent
+                     , persistent-sqlite
+                     , persistent-template
+                     , aeson
+                     , text
