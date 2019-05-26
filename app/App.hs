@@ -10,10 +10,14 @@ import Web.Spock
 import AppTypes
 import Actions ( getNote
                , getAllNotes
-               , postNote )
+               , postNote
+               , putNote
+               , deleteNote )
 
 app :: MudApi
 app = do
-  post "notes" $ postNote
-  get "notes" $ getAllNotes
   get ("note" <//> var) $ getNote
+  get "notes" $ getAllNotes
+  post "notes" $ postNote
+  put ("note" <//> var) $ putNote
+  delete ("note" <//> var) $ deleteNote

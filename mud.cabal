@@ -17,7 +17,6 @@ executable mud
   hs-source-dirs:      app
   main-is:             Main.hs
   other-modules:       Types
-                     , Responding
                      , App
                      , AppTypes
                      , Sql
@@ -25,6 +24,7 @@ executable mud
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5
                      , Spock >= 0.11
+                     , Spock-core >= 0.11
                      , mtl
                      , monad-logger
                      , persistent
@@ -32,3 +32,6 @@ executable mud
                      , persistent-template
                      , aeson
                      , text
+                     , http-types
+                     , bytestring
+                     , dotenv
