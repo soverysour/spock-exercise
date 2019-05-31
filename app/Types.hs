@@ -11,12 +11,36 @@
 
 module Types where
 
-import qualified Data.Text           as T
-import qualified Database.Persist.TH as Th
+import Data.Text
+import Data.Time.Clock
 
-Th.share [Th.mkPersist Th.sqlSettings, Th.mkMigrate "migrateAll"] [Th.persistLowerCase|
-Note json
-  author T.Text
-  content T.Text
+import Database.Persist
+import Database.Persist.Sqlite
+import Database.Persist.TH
+
+share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
+User json
+  username  Text
+  email Text
+  password Text
+
+  UniqueUsername username
+  UniqueEmail email
+  deriving Show
+
+Conference json
+  website Text
+  information Text
+  name Text
+  startDate UTCTime
+  abstractDate UTCTime
+  submissionDate UTCTime
+  presentationDate UTCTime
+  endDate UTCTime
+
+  mainChair (Key User)
+
+  UniqueName name
+  UniqueWebsite website
   deriving Show
 |]

@@ -37,7 +37,9 @@ packages:
 # Dependency packages to be pulled from upstream that are not in the resolver
 # using the same syntax as the packages field.
 # (e.g., acme-missiles-0.3)
-# extra-deps: []
+extra-deps: [
+'Spock-worker-0.3.1.0@sha256:15a18e0c6099ca60b324556d6adfd86be17c7d99c1e2ab1015095b1ce3022dea'
+]
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

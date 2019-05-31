@@ -1,10 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Actions ( getAllNotes
-               , getNote
-               , postNote
-               , putNote
-               , deleteNote
+module Actions ( getAllUsers
+               , getUser
+               , updateUser
+               , registerUser
+               , loginUser
+               , logoutUser
                ) where
 
 import Web.Spock
@@ -18,47 +19,71 @@ import qualified Network.HTTP.Types.Status as HTTP
 import AppTypes
 import Types
 import Sql ( runSql )
+import TransferObjects ( Credentials(..) )
 
-getAllNotes :: MudAction a
-getAllNotes = do
-  result <- runSql $ P.selectList [] [Sql.Asc NoteId]
+getAllUsers :: MudAction a
+getAllUsers = do
+  result <- runSql $ P.selectList [] [Sql.Asc UserId]
   json $ result
 
-postNote :: MudAction a
-postNote = do
-  maybeNote <- jsonBody :: MudAction (Maybe Note)
-  case maybeNote of
+getUser :: Key User -> MudAction a
+getUser noteId = do
+  maybeUser <- runSql $ P.get noteId :: MudAction (Maybe User)
+  case maybeUser of
+    Nothing -> do
+      setStatus $ HTTP.mkStatus 404 "User not found."
+      text ""
+    Just theUser ->
+      json theUser
+
+updateUser :: Key User -> MudAction a
+updateUser noteId = do
+  maybeUser <- jsonBody :: MudAction (Maybe User)
+  case maybeUser of
     Nothing -> do
       setStatus $ HTTP.mkStatus 400 "Bad note data given."
-      json $ object []
-    Just theNote -> do
-      newId <- runSql $ P.insert theNote
-      setStatus $ HTTP.mkStatus 201 "Note created."
+      text ""
+    Just theUser -> do
+      newId <- runSql $ P.replace noteId theUser :: MudAction ()
+      setStatus $ HTTP.mkStatus 201 "User updated."
       json $ object ["result" .= String "success", "id" .= newId]
 
-getNote :: Key Note -> MudAction a
-getNote noteId = do
-  maybeNote <- runSql $ P.get noteId :: MudAction (Maybe Note)
-  case maybeNote of
-    Nothing -> do
-      setStatus $ HTTP.mkStatus 404 "Note not found."
-      json $ object []
-    Just theNote ->
-      json theNote
-
-deleteNote :: Key Note -> MudAction a
-deleteNote noteId = do
-  runSql $ P.delete noteId :: MudAction ()
-  json $ object [ "result" .= String "success", "id" .= noteId]
-
-putNote :: Key Note -> MudAction a
-putNote noteId = do
-  maybeNote <- jsonBody :: MudAction (Maybe Note)
-  case maybeNote of
+registerUser :: MudAction a
+registerUser = do
+  maybeUser <- jsonBody :: MudAction (Maybe User)
+  case maybeUser of
     Nothing -> do
       setStatus $ HTTP.mkStatus 400 "Bad note data given."
-      json $ object []
-    Just theNote -> do
-      newId <- runSql $ P.replace noteId theNote :: MudAction ()
-      setStatus $ HTTP.mkStatus 201 "Note updated."
-      json $ object ["result" .= String "success", "id" .= newId]
+      text ""
+    Just theUser -> do
+      newId <- runSql $ P.insert theUser
+      setStatus $ HTTP.mkStatus 201 "User registered."
+      redirect "/"
+
+loginUser :: MudAction ()
+loginUser = do
+  maybeCreds <- jsonBody :: MudAction (Maybe Credentials)
+  case maybeCreds of
+    Nothing -> do
+      setStatus $ HTTP.mkStatus 400 "Improper credentials format given."
+      text ""
+    Just creds -> do
+      maybeUser <- runSql . P.getBy $ UniqueEmail (credEmail creds)
+      case maybeUser of
+        Nothing -> do
+          setStatus $ HTTP.mkStatus 400 "No such user exists."
+          text ""
+        Just (P.Entity userId user) -> do
+          if userPassword user /= credPassword creds
+            then do
+              setStatus $ HTTP.mkStatus 400 "Bad password."
+              text ""
+            else do
+              modifySession ( \_ -> Just userId )
+              setStatus $ HTTP.mkStatus 201 "User logged in."
+              redirect "/"
+
+logoutUser :: MudAction ()
+logoutUser = do
+  modifySession ( \_ -> Nothing )
+  redirect "/"
